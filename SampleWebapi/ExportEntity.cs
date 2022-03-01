@@ -15,6 +15,8 @@ namespace SampleWebapi
         public string Name2 { get; set; }
         public string Name3 { get; set; }
         public string Area { get; set; }
+
+        [Qin.CsvRelevant.ExportColumn("myState")]
         public int State { get; set; }
         public byte Isdel { get; set; }
         public decimal Money { get; set; }

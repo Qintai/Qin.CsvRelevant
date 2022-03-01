@@ -12,7 +12,7 @@
 
     internal class CsvGenerateDefault : ICsvGenerate
     {
-        public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, string> propOperation = null)
+        public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null)
         {
             if (listData == null || column == null)
             {
@@ -38,7 +38,7 @@
             return charBytes;
         }
 
-        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "", Func<string, object, string> propOperation = null)
+        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null)
         {
             if (listData == null)
             {
@@ -49,7 +49,7 @@
             return Write(listData, column, fileName, propOperation);
         }
 
-        public async Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, string> propOperation = null)
+        public async Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null)
         {
             var bytearr = await Task.Run(() =>
             {
@@ -58,7 +58,7 @@
             return bytearr;
         }
 
-        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "", Func<string, object, string> propOperation = null)
+        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null)
         {
             var bytearr = await Task.Run(() =>
             {
@@ -67,7 +67,7 @@
             return bytearr;
         }
 
-        public StringBuilder BuildStringBuilder<T>(List<T> list, Dictionary<string, string> column, Func<string, object, string> propOperation = null)
+        public StringBuilder BuildStringBuilder<T>(List<T> list, Dictionary<string, string> column, Func<string, object, object> propOperation = null)
         {
             List<object> strch = new List<object>();
             StringBuilder builder = new StringBuilder();
@@ -90,12 +90,7 @@
                     if (val is DateTime date)
                         val = date.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    if (propOperation != null)
-                    {
-                        var datastr = propOperation(i.Value, val);
-                        if (!string.IsNullOrWhiteSpace(datastr))
-                            val = datastr;
-                    }
+                    if (propOperation != null) val = propOperation(i.Value, val);
                     strch.Add(val);
                 }
 

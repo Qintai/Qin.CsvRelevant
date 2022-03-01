@@ -77,6 +77,7 @@ namespace SampleWebapi
 
         /// <summary>
         /// WriteByAttributeAsync
+        /// http://localhost:5000/CSV/Export2
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -85,16 +86,28 @@ namespace SampleWebapi
             Console.WriteLine("Export2");
 
             List<ExportEntity> listData = new List<ExportEntity>();
-            listData.Add(new ExportEntity { Name = "Sully", Orderid = 12333 });
-            listData.Add(new ExportEntity { Name = "Ben", Orderid = 12333 });
-            listData.Add(new ExportEntity { Name = "Fiy", Orderid = 12333 });
+            listData.Add(new ExportEntity { Name = "Sully", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "Ben", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "Fiy", Orderid = 12333, State = 3 });
 
             string localexportpath = "Export";
             var path = Path.Combine(localexportpath);
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\qqq.csv");
+            Func<string, object, object> func = (prop, value) =>
+              {
+                  if (prop == "State")
+                  {
+                      if (value is int a && a == 1) return "ok";
+                      else if (value is int b && b == 2) return "fail";
+                      else if (value is int v && v == 3) return "no";
+                      return "";
+                  }
+                  return value;
+              };
+
+            var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\qqq.csv", func);
             _ = _zipOperation.ZipFileByGb2312($"{localexportpath}\\qqq.csv", $"{localexportpath}\\qqq.zip", "1");
             return File(charBytes0, "text/csv", "results.csv");
         }
