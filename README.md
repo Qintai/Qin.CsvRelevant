@@ -1,14 +1,14 @@
 # Qin.CsvRelevant
 Csv Export,zip
 ``` C#
-    public void ConfigureServices(IServiceCollection services)
-    {
-            services.AddCsvGenerate().AddZipOperation();
-    }
+public void ConfigureServices(IServiceCollection services)
+{
+  services.AddCsvGenerate();
+}
 ```
 
 ## 1.Customize CSV file header
-```
+``` C#
   List<dynamic> listData = new List<dynamic>();
   listData.Add(new { name = "Sully1", Poe = 12333 });
   listData.Add(new { name = "Ben1", Poe = 12333 });
@@ -20,7 +20,7 @@ Csv Export,zip
 ```
 
 ## 2.Specify the mapping relationship through fluent
-```
+``` C#
  List<ExportEntity> listData2 = GetList();
  var culumn2 = _csvGenerate.Map<ExportEntity>("MyOrderId", a => a.Orderid)
                                       .Map<ExportEntity>("MyName", a => a.Name)
@@ -35,7 +35,7 @@ Csv Export,zip
 ```
 
 ## 3.Entity tag mapping column name
-```
+``` C#
     public class ExportEntity
     {
         [Qin.CsvRelevant.ExportColumn("Myorderid")]
@@ -53,7 +53,7 @@ Csv Export,zip
     var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, "xxx\\demo3.csv");
 ```
 
-When writing a CSV file, when the "file name" field is null or the default value, byte []] will be returned, but the file will not be generated
+When writing a CSV file, when the "file name" field is null or the default value, byte [] will be returned, but the file will not be generated
 
 
 
