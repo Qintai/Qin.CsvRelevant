@@ -9,14 +9,14 @@
 		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 	  <PackageReference Include="Qin.CsvRelevant" Version="1.0.1" />
-	</ItemGroup>
+	</ItemGroup>-->
 
-	<!--
+	
 		<ItemGroup>
 		  <ProjectReference Include="..\Qin.CsvExport\Qin.CsvRelevant.csproj" />
 		</ItemGroup>
-	-->
+	
 
 </Project>

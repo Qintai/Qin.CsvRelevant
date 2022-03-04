@@ -16,32 +16,29 @@ namespace SampleWebapi
     public class CSVController : Controller
     {
         ICsvGenerate _csvGenerate;
-        IZipOperation _zipOperation;
+        string localexportpath = "Export";
 
-        public CSVController(ICsvGenerate csv, IZipOperation zip)
+        public CSVController(ICsvGenerate csv)
         {
             _csvGenerate = csv;
-            _zipOperation = zip;
         }
 
         private List<ExportEntity> GetList()
         {
             List<ExportEntity> listData2 = new List<ExportEntity>();
-            for (int i = 0; i < 400000; i++)
-                listData2.Add(new ExportEntity { Name = "wa" + i, Orderid = 66 + i });
+            for (int i = 0; i < 40000; i++)
+                listData2.Add(new ExportEntity { Name = "wa" + i, Orderid = 66 + i, CreateTime = DateTime.Now });
             return listData2;
         }
 
         /// <summary>
-        /// WriteAsync£¬Map£¬ZipFileByGb2312
-        /// http://localhost:5000/CSV/Export
+        /// http://localhost:5000/CSV/Export0
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> Export()
+        public async Task<IActionResult> Export0()
         {
-            Console.WriteLine("Export");
-
+            Console.WriteLine("Export0");
             List<dynamic> listData = new List<dynamic>();
             listData.Add(new { name = "Sully1", Poe = 12333 });
             listData.Add(new { name = "Ben1", Poe = 12333 });
@@ -50,29 +47,53 @@ namespace SampleWebapi
             column.Add("MyName", "name");
             column.Add("MyOrderId", "Poe");
 
-            string localexportpath = "Export";
             var path = Path.Combine(localexportpath);
-            if (!Directory.Exists(path))
+            if(!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var charBytes0 = await _csvGenerate.WriteAsync(listData, column, $"{localexportpath}\\qqq.csv");
+            var charBytes0 = await _csvGenerate.WriteAsync(listData, column, Path.Combine(localexportpath, "export0.csv"));
+            return Ok(0); 
+        }
 
+        /// <summary>
+        /// WriteAsync£¬Map£¬ZipFileByGb2312
+        /// http://localhost:5000/CSV/Export1
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> Export1()
+        {
             //Specify the mapping relationship through fluent
             List<ExportEntity> listData2 = GetList();
             var culumn2 = _csvGenerate.Map<ExportEntity>("MyOrderId", a => a.Orderid)
-                                      .Map<ExportEntity>("MyName", a => a.Name)
-                                      .Map<ExportEntity>("MyName2", a => a.Name2)
-                                      .Map<ExportEntity>("MyName3", a => a.Name3)
-                                      .Map<ExportEntity>("State", a => a.State)
-                                      .Map<ExportEntity>("Money", a => a.Money)
-                                      .Map<ExportEntity>("Isdel", a => a.Isdel)
+                                      //.Map<ExportEntity>("MyName", a => a.Name)
+                                      //.Map<ExportEntity>("MyName2", a => a.Name)
+                                      //.Map<ExportEntity>("MyName3", a => a.Name3)
+                                      //.Map<ExportEntity>("State", a => a.State)
+                                      //.Map<ExportEntity>("Money", a => a.Money)
+                                      //.Map<ExportEntity>("Isdel", a => a.Isdel)
+                                      .Map<ExportEntity>("Date", a => a.CreateTime)
+                                      .Map<ExportEntity>("Time", a => a.CreateTime)
                                       .Map<ExportEntity>("Area", a => a.Area).BuildDictionary();
 
-            var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, $"{localexportpath}\\qqq2.csv");
+            _csvGenerate.ForMat = (column, fieldname, fieldvalue) =>
+            {
+                if (fieldvalue is null)
+                    return fieldvalue;
 
-            //Compressed file
-            _ = _zipOperation.ZipFileByGb2312($"{localexportpath}\\qqq.csv", $"{localexportpath}\\qqq.zip", "1");
-            return File(charBytes2, "text/csv", "results.csv");
+                if (column == "Date" && fieldname == "CreateTime")
+                {
+                    fieldvalue = fieldvalue is DateTime s1 ? s1.ToString("yyyy-MM-dd") : fieldvalue;
+                }
+                else if (column == "Time" && fieldname == "CreateTime")
+                {
+                    fieldvalue = fieldvalue is DateTime s1 ? s1.ToString("HH:mm:ss") : fieldvalue;
+                }
+                return fieldvalue;
+            };
+            
+            var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, Path.Combine(localexportpath, "export1.csv"));
+            return Ok(1); //File is SampleWebapi\Export
         }
 
         /// <summary>
@@ -95,21 +116,20 @@ namespace SampleWebapi
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            Func<string, object, object> func = (prop, value) =>
-              {
-                  if (prop == "State")
-                  {
-                      if (value is int a && a == 1) return "ok";
-                      else if (value is int b && b == 2) return "fail";
-                      else if (value is int v && v == 3) return "no";
-                      return "";
-                  }
-                  return value;
-              };
+            Func<string, object, object> func = (fieldname, fieldvalue) =>
+            {
+                if (fieldname == "State")
+                {
+                    if (fieldvalue is int a && a == 1) return "ok";
+                    else if (fieldvalue is int b && b == 2) return "fail";
+                    else if (fieldvalue is int v && v == 3) return "no";
+                    return "";
+                }
+                return fieldvalue;
+            };
 
-            var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\qqq.csv", func);
-            _ = _zipOperation.ZipFileByGb2312($"{localexportpath}\\qqq.csv", $"{localexportpath}\\qqq.zip", "1");
-            return File(charBytes0, "text/csv", "results.csv");
+            var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\Export2.csv", func);
+            return File(charBytes0, "text/csv", "Export2a.csv");
         }
     }
 }

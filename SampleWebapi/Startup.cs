@@ -23,7 +23,7 @@ namespace SampleWebapi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddCsvGenerate().AddZipOperation();
+            services.AddCsvGenerate();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -85,13 +85,15 @@
                     if (prop == null)
                         throw new Exception($"There is no {i.Value} attribute in the {type.Name} class. Please check whether the attribute is written incorrectly");
 
-                    object val = prop.GetValue(item);
-                    
-                    if (val is DateTime date)
-                        val = date.ToString("yyyy-MM-dd HH:mm:ss");
+                    object fieldvalue = prop.GetValue(item);
 
-                    if (propOperation != null) val = propOperation(i.Value, val);
-                    strch.Add(val);
+                    if (_forMat != null)
+                         fieldvalue = _forMat(i.Key, i.Value, fieldvalue);
+
+                    if (propOperation != null)
+                        fieldvalue = propOperation(i.Value, fieldvalue);
+
+                    strch.Add(fieldvalue);
                 }
 
                 builder.AppendJoin<object>(',', strch);
@@ -101,6 +103,15 @@
 
             return builder;
         }
+
+        private Func<string, string, object, object> _forMat = (column, fieldname, fieldvalue) => 
+        {
+            if (fieldvalue !=null && fieldvalue is DateTime date)
+                fieldvalue = date.ToString("yyyy-MM-dd HH:mm:ss");
+            return fieldvalue;
+        };
+
+        Func<string, string, object, object> ICsvGenerate.ForMat { get => _forMat; set => _forMat = value; }
 
         public Dictionary<string, string> ToExcelComumn<T>()
         {

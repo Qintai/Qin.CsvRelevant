@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Text;
 
 namespace SampleWebapi
@@ -20,5 +21,6 @@ namespace SampleWebapi
         public int State { get; set; }
         public byte Isdel { get; set; }
         public decimal Money { get; set; }
+        public DateTime CreateTime { get; set; }
     }
 }
