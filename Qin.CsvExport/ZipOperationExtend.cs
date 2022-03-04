@@ -7,15 +7,15 @@ namespace Qin.CsvRelevant
 
     public static class ZipOperationExtend
     {
-        public static IServiceCollection AddZipOperation(this IServiceCollection services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException("services");
-            }
-            services.AddSingleton<IZipOperation, ZipOperationDefault>();
-            return services;
-        }
+        //public static IServiceCollection AddZipOperation(this IServiceCollection services)
+        //{
+        //    if (services == null)
+        //    {
+        //        throw new ArgumentNullException("services");
+        //    }
+        //    services.AddSingleton<IZipOperation, ZipOperationDefault>();
+        //    return services;
+        //}
 
         public static IServiceCollection AddCsvGenerate(this IServiceCollection services)
         {

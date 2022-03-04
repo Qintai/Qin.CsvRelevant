@@ -3,19 +3,23 @@
 		<TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<Authors>Qin</Authors>
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
-		<Description>Csv Export,Zip compression and decompression</Description>
+		<Description>Csv Export</Description>
 		<PackageProjectUrl></PackageProjectUrl>
 		<RepositoryUrl></RepositoryUrl>
 		<PackageReleaseNotes></PackageReleaseNotes>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="ZipGenerate\**" />
+	  <EmbeddedResource Remove="ZipGenerate\**" />
+	  <None Remove="ZipGenerate\**" />
+	</ItemGroup>
 		
 	<ItemGroup> 
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-		<PackageReference Include="SharpZipLib" Version="1.3.3" />
 		<PackageReference Include="Sylvan.Data" Version="0.1.3" />
 		<PackageReference Include="Sylvan.Data.Csv" Version="1.1.12" />
 	</ItemGroup>
