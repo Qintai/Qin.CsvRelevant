@@ -1,5 +1,12 @@
 # Qin.CsvRelevant
-Csv Export,zip
+Csv Export    Install
+
+```xml
+   Install-Package Qin.CsvRelevant -Version 1.0.3.1
+```
+
+
+
 ``` C#
 public void ConfigureServices(IServiceCollection services)
 {
