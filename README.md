@@ -31,6 +31,18 @@ public void ConfigureServices(IServiceCollection services)
                                       .Map<ExportEntity>("Isdel", a => a.Isdel)
                                       .Map<ExportEntity>("Area", a => a.Area).BuildDictionary();
 
+ _csvGenerate.ForMat = (column, fieldname, fieldvalue) =>
+ {
+     if (fieldvalue is null)
+         return fieldvalue;
+
+     if (column == "Date" && fieldname == "CreateTime")
+     {
+         fieldvalue = fieldvalue is DateTime s1 ? s1.ToString("yyyy-MM-dd") : fieldvalue;
+     }
+     return fieldvalue;
+ };
+
  var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, "xxx\\demo2.csv");
 ```
 
@@ -43,6 +55,9 @@ public void ConfigureServices(IServiceCollection services)
 
         [Qin.CsvRelevant.ExportColumn("myname")]
         public string Name { get; set; }
+        
+        [Qin.CsvRelevant.ExportColumn("Date")]
+        public DateTime CreateTime { get; set; }
     }
     // Split line
     List<ExportEntity> listData = new List<ExportEntity>();

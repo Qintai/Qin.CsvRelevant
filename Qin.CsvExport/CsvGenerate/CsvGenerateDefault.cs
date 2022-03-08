@@ -38,14 +38,14 @@
             return charBytes;
         }
 
-        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null)
+        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null) where T : class
         {
             if (listData == null)
             {
                 throw new AggregateException("Parameter cannot be null");
             }
 
-            Dictionary<string, string> column = ToExcelComumn<T>();
+            Dictionary<string, string> column = GetHeader<T>();
             return Write(listData, column, fileName, propOperation);
         }
 
@@ -58,7 +58,7 @@
             return bytearr;
         }
 
-        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null)
+        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null) where T : class
         {
             var bytearr = await Task.Run(() =>
             {
@@ -113,7 +113,7 @@
 
         Func<string, string, object, object> ICsvGenerate.ForMat { get => _forMat; set => _forMat = value; }
 
-        public Dictionary<string, string> ToExcelComumn<T>()
+        public Dictionary<string, string> GetHeader<T>() where T : class
         {
             Type type = typeof(T);
             Type column = typeof(ExportColumnAttribute);

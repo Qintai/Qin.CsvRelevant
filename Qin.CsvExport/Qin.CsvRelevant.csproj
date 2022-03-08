@@ -3,13 +3,13 @@
 		<TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
-		<Version>1.0.3</Version>
+		<Version>1.0.3.1</Version>
 		<Authors>Qin</Authors>
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
 		<Description>Csv Export</Description>
 		<PackageProjectUrl></PackageProjectUrl>
-		<RepositoryUrl></RepositoryUrl>
+		<RepositoryUrl>https://github.com/Qintai/Qin.CsvRelevant</RepositoryUrl>
 		<PackageReleaseNotes></PackageReleaseNotes>
 	</PropertyGroup>
 	<ItemGroup>
