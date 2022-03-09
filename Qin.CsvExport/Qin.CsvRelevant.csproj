@@ -8,9 +8,10 @@
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
 		<Description>Csv Export</Description>
+		<PackageIcon></PackageIcon>
 		<PackageProjectUrl></PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Qintai/Qin.CsvRelevant</RepositoryUrl>
-		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageReleaseNotes>Output of new header</PackageReleaseNotes>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="ZipGenerate\**" />
