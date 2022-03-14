@@ -3,7 +3,7 @@
 		<TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
-		<Version>1.0.3.1</Version>
+		<Version>1.0.3.4</Version>
 		<Authors>Qin</Authors>
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
@@ -11,7 +11,7 @@
 		<PackageIcon></PackageIcon>
 		<PackageProjectUrl></PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Qintai/Qin.CsvRelevant</RepositoryUrl>
-		<PackageReleaseNotes>Output of new header</PackageReleaseNotes>
+		<PackageReleaseNotes>Blank value without single quotation mark</PackageReleaseNotes>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="ZipGenerate\**" />

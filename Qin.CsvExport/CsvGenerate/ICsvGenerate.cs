@@ -6,7 +6,9 @@ namespace Qin.CsvRelevant
 {
     public interface ICsvGenerate
     {
+        bool FormatTextOutput { get; set; }
         Func<string, string, object, object> ForMat { get; set; }
+        string TimeFormatting { get; set; }
 
         byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null);
 

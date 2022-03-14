@@ -22,5 +22,6 @@ namespace SampleWebapi
         public byte Isdel { get; set; }
         public decimal Money { get; set; }
         public DateTime CreateTime { get; set; }
+        public DateTime? OtherTime { get; set; }
     }
 }

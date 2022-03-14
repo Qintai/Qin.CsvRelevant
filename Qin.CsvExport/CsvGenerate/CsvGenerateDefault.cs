@@ -12,6 +12,16 @@
 
     internal class CsvGenerateDefault : ICsvGenerate
     {
+        private bool _FormatTextOutput = true;
+        private Func<string, string, object, object> _forMat = (column, fieldname, fieldvalue) => fieldvalue;
+        private string _TimeFormatting = "yyyy-MM-dd HH:mm:ss";
+
+        public Func<string, string, object, object> ForMat { get => _forMat; set => _forMat = value; }
+
+        public bool FormatTextOutput { get => _FormatTextOutput; set => _FormatTextOutput = value; }
+
+        public string TimeFormatting { get => _TimeFormatting; set => _TimeFormatting = value; }
+
         public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null)
         {
             if (listData == null || column == null)
@@ -87,11 +97,17 @@
 
                     object fieldvalue = prop.GetValue(item);
 
+                    if(_TimeFormatting != null && fieldvalue != null && fieldvalue is DateTime date)
+                        fieldvalue = date.ToString(_TimeFormatting);
+
                     if (_forMat != null)
-                         fieldvalue = _forMat(i.Key, i.Value, fieldvalue);
+                        fieldvalue = _forMat(i.Key, i.Value, fieldvalue);
 
                     if (propOperation != null)
                         fieldvalue = propOperation(i.Value, fieldvalue);
+
+                    if (_FormatTextOutput && fieldvalue != null && !string.IsNullOrWhiteSpace(fieldvalue.ToString()))
+                        fieldvalue = "'" + fieldvalue;
 
                     strch.Add(fieldvalue);
                 }
@@ -103,15 +119,6 @@
 
             return builder;
         }
-
-        private Func<string, string, object, object> _forMat = (column, fieldname, fieldvalue) => 
-        {
-            if (fieldvalue !=null && fieldvalue is DateTime date)
-                fieldvalue = date.ToString("yyyy-MM-dd HH:mm:ss");
-            return fieldvalue;
-        };
-
-        Func<string, string, object, object> ICsvGenerate.ForMat { get => _forMat; set => _forMat = value; }
 
         public Dictionary<string, string> GetHeader<T>() where T : class
         {

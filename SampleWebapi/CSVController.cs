@@ -27,7 +27,7 @@ namespace SampleWebapi
         {
             List<ExportEntity> listData2 = new List<ExportEntity>();
             for (int i = 0; i < 40000; i++)
-                listData2.Add(new ExportEntity { Name = "wa" + i, Orderid = 66 + i, CreateTime = DateTime.Now });
+                listData2.Add(new ExportEntity { Name = "wa" + i, Orderid = 66 + i, CreateTime = DateTime.Now ,OtherTime =DateTime.Now});
             return listData2;
         }
 
@@ -40,16 +40,26 @@ namespace SampleWebapi
         {
             Console.WriteLine("Export0");
             List<dynamic> listData = new List<dynamic>();
-            listData.Add(new { name = "Sully1", Poe = 12333 });
-            listData.Add(new { name = "Ben1", Poe = 12333 });
-            listData.Add(new { name = "Fiy1", Poe = 12333 });
+            listData.Add(new { name = "Sully1", Poe = 12333, kkId = "461001522006092031", date = DateTime.Now });
+            listData.Add(new { name = "Ben1", Poe = 12333,   kkId = "461001522006092032", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092033", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092987", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092921", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092921", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12334,   kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12323,   kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12313,   kkId = "", date = DateTime.Now });
             Dictionary<string, string> column = new Dictionary<string, string>();
             column.Add("MyName", "name");
             column.Add("MyOrderId", "Poe");
+            column.Add("kkId", "kkId");
+            column.Add("date", "date");
 
             var path = Path.Combine(localexportpath);
             if(!Directory.Exists(path))
                 Directory.CreateDirectory(path);
+
+            _csvGenerate.FormatTextOutput = true;
 
             var charBytes0 = await _csvGenerate.WriteAsync(listData, column, Path.Combine(localexportpath, "export0.csv"));
             return Ok(0); 
@@ -74,7 +84,8 @@ namespace SampleWebapi
                                       //.Map<ExportEntity>("Isdel", a => a.Isdel)
                                       .Map<ExportEntity>("Date", a => a.CreateTime)
                                       .Map<ExportEntity>("Time", a => a.CreateTime)
-                                      .Map<ExportEntity>("Area", a => a.Area).BuildDictionary();
+                                      .Map<ExportEntity>("Area", a => a.Area)
+                                      .Map<ExportEntity>("OtherTime", a => a.OtherTime).BuildDictionary();
 
             _csvGenerate.ForMat = (column, fieldname, fieldvalue) =>
             {
