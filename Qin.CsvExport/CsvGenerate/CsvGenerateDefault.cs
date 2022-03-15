@@ -12,24 +12,18 @@
 
     internal class CsvGenerateDefault : ICsvGenerate
     {
-        private bool _FormatTextOutput = true;
-        private Func<string, string, object, object> _forMat = (column, fieldname, fieldvalue) => fieldvalue;
-        private string _TimeFormatting = "yyyy-MM-dd HH:mm:ss";
+        public CsvDataWriterOptions Options { get; set; }
+        public string TimeFormatting { get; set; } = "yyyy-MM-dd HH:mm:ss";
+        public Func<string, string, object, object> ForMat { get; set; }
 
-        public Func<string, string, object, object> ForMat { get => _forMat; set => _forMat = value; }
-
-        public bool FormatTextOutput { get => _FormatTextOutput; set => _FormatTextOutput = value; }
-
-        public string TimeFormatting { get => _TimeFormatting; set => _TimeFormatting = value; }
-
-        public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null)
+        public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "")
         {
             if (listData == null || column == null)
             {
                 throw new AggregateException("Parameter cannot be null");
             }
 
-            StringBuilder stringbuilder = BuildStringBuilder(listData, column, propOperation);
+            StringBuilder stringbuilder = BuildStringBuilder(listData, column);
 
             char[] charArr = new char[stringbuilder.Length];
             stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
@@ -41,14 +35,14 @@
                 using StreamReader streamReader = new StreamReader(stream);
 
                 CsvDataReader csvcra = CsvDataReader.Create(streamReader);
-                using var csvdatawriter = CsvDataWriter.Create(fileName);
+                using var csvdatawriter = CsvDataWriter.Create(fileName, Options);
                 csvdatawriter.Write(csvcra);
             }
 
             return charBytes;
         }
 
-        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null) where T : class
+        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "") where T : class
         {
             if (listData == null)
             {
@@ -56,32 +50,32 @@
             }
 
             Dictionary<string, string> column = GetHeader<T>();
-            return Write(listData, column, fileName, propOperation);
+            return Write(listData, column, fileName);
         }
 
-        public async Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null)
+        public async Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "")
         {
             var bytearr = await Task.Run(() =>
             {
-                return Write<T>(listData, column, fileName, propOperation);
+                return Write<T>(listData, column, fileName);
             });
             return bytearr;
         }
 
-        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null) where T : class
+        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "") where T : class
         {
             var bytearr = await Task.Run(() =>
             {
-                return WriteByAttribute<T>(listData, fileName, propOperation);
+                return WriteByAttribute<T>(listData, fileName);
             });
             return bytearr;
         }
 
-        public StringBuilder BuildStringBuilder<T>(List<T> list, Dictionary<string, string> column, Func<string, object, object> propOperation = null)
+        public StringBuilder BuildStringBuilder<T>(List<T> list, Dictionary<string, string> column)
         {
             List<object> strch = new List<object>();
             StringBuilder builder = new StringBuilder();
-            string[] columns = column.Keys.Select(s => new string(s)).ToArray();
+            var columns = column.Keys.Select(s => "\"" + s + "\t\"");
             builder.AppendJoin<string>(',', columns);
             builder.Append("\n");
             Type type = null;
@@ -97,19 +91,14 @@
 
                     object fieldvalue = prop.GetValue(item);
 
-                    if(_TimeFormatting != null && fieldvalue != null && fieldvalue is DateTime date)
-                        fieldvalue = date.ToString(_TimeFormatting);
+                    if (TimeFormatting != null && fieldvalue != null && fieldvalue is DateTime date)
+                        fieldvalue = date.ToString(TimeFormatting);
 
-                    if (_forMat != null)
-                        fieldvalue = _forMat(i.Key, i.Value, fieldvalue);
+                    if (ForMat != null)
+                        fieldvalue = ForMat(i.Key, i.Value, fieldvalue);
 
-                    if (propOperation != null)
-                        fieldvalue = propOperation(i.Value, fieldvalue);
-
-                    if (_FormatTextOutput && fieldvalue != null && !string.IsNullOrWhiteSpace(fieldvalue.ToString()))
-                        fieldvalue = "'" + fieldvalue;
-
-                    strch.Add(fieldvalue);
+                    if (fieldvalue == null) strch.Add("\t");
+                    else strch.Add("\"" + fieldvalue.ToString() + "\t\"");
                 }
 
                 builder.AppendJoin<object>(',', strch);

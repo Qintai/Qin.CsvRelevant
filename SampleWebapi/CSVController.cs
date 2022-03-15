@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Qin.CsvRelevant;
+using Sylvan.Data.Csv;
 
 namespace SampleWebapi
 {
@@ -27,7 +28,7 @@ namespace SampleWebapi
         {
             List<ExportEntity> listData2 = new List<ExportEntity>();
             for (int i = 0; i < 40000; i++)
-                listData2.Add(new ExportEntity { Name = "wa" + i, Orderid = 66 + i, CreateTime = DateTime.Now ,OtherTime =DateTime.Now});
+                listData2.Add(new ExportEntity { Name = "wa" + i, Orderid = 66 + i, CreateTime = DateTime.Now, OtherTime = DateTime.Now });
             return listData2;
         }
 
@@ -40,29 +41,38 @@ namespace SampleWebapi
         {
             Console.WriteLine("Export0");
             List<dynamic> listData = new List<dynamic>();
-            listData.Add(new { name = "Sully1", Poe = 12333, kkId = "461001522006092031", date = DateTime.Now });
-            listData.Add(new { name = "Ben1", Poe = 12333,   kkId = "461001522006092032", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092033", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092987", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092921", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12333,   kkId = "461001522006092921", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12334,   kkId = "", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12323,   kkId = "", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12313,   kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Sully1,667\t", Poe = 12333, kkId = "46100152200609203123332", date = DateTime.Now });
+            listData.Add(new { name = "Ben1,vv\t", Poe = 12333, kkId = "4610015220060920332332", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1,32,fds,we", Poe = 12333, kkId = "46100132522006092033", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1;", Poe = 12333, kkId = "4610015220060929873", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1|", Poe = 12333, kkId = "46100152200,609293321", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12333, kkId = "4610015220060929233221", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12334, kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12323, kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Fiy1", Poe = 12313, kkId = "", date = DateTime.Now });
             Dictionary<string, string> column = new Dictionary<string, string>();
-            column.Add("MyName", "name");
-            column.Add("MyOrderId", "Poe");
-            column.Add("kkId", "kkId");
-            column.Add("date", "date");
+            column.Add("MyName,32", "name");
+            column.Add("MyOrderId,rr", "Poe");
+            column.Add("kk,Id", "kkId");
+            column.Add("da,te", "date");
 
             var path = Path.Combine(localexportpath);
-            if(!Directory.Exists(path))
+            if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            _csvGenerate.FormatTextOutput = true;
+            //CsvDataWriterOptions optiosn = new CsvDataWriterOptions()
+            //{
+            //    DateTimeFormat = "yyyy-MM-dd HH:mm:ss",
+            //    DateFormat = "yyyy-MM-dd",
+            //    NewLine = Environment.NewLine,
+            //    Style = CsvStyle.Standard,
+            //    WriteHeaders = false,
+            //};
+            // _csvGenerate.Options = optiosn;
+            //_csvGenerate.TimeFormatting = null;
 
             var charBytes0 = await _csvGenerate.WriteAsync(listData, column, Path.Combine(localexportpath, "export0.csv"));
-            return Ok(0); 
+            return Ok(0);
         }
 
         /// <summary>
@@ -102,7 +112,7 @@ namespace SampleWebapi
                 }
                 return fieldvalue;
             };
-            
+
             var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, Path.Combine(localexportpath, "export1.csv"));
             return Ok(1); //File is SampleWebapi\Export
         }
@@ -127,19 +137,7 @@ namespace SampleWebapi
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            Func<string, object, object> func = (fieldname, fieldvalue) =>
-            {
-                if (fieldname == "State")
-                {
-                    if (fieldvalue is int a && a == 1) return "ok";
-                    else if (fieldvalue is int b && b == 2) return "fail";
-                    else if (fieldvalue is int v && v == 3) return "no";
-                    return "";
-                }
-                return fieldvalue;
-            };
-
-            var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\Export2.csv", func);
+            var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\Export2.csv");
             return File(charBytes0, "text/csv", "Export2a.csv");
         }
     }

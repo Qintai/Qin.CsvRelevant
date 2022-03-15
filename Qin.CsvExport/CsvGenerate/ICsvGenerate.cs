@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sylvan.Data.Csv;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,17 +7,40 @@ namespace Qin.CsvRelevant
 {
     public interface ICsvGenerate
     {
-        bool FormatTextOutput { get; set; }
-        Func<string, string, object, object> ForMat { get; set; }
+        /// <summary>
+        /// Time field format, default "yyyy MM DD HH: mm: SS"
+        /// </summary>
         string TimeFormatting { get; set; }
 
-        byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null);
+        /// <summary>
+        /// Combine CSV text content for formatting
+        /// </summary>
+        Func<string, string, object, object> ForMat { get; set; }
 
-        Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "", Func<string, object, object> propOperation = null);
+        CsvDataWriterOptions Options { get; set; }
 
-        byte[] WriteByAttribute<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null) where T : class;
+        byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
 
-        Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "", Func<string, object, object> propOperation = null) where T : class;
+        /// <summary>
+        /// WriteCsv
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="listData">data source</param>
+        /// <param name="column">header</param>
+        /// <param name="fileName">No file name, no file is written, but byte [] is returned</param>
+        /// <returns></returns>
+        Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
+
+        byte[] WriteByAttribute<T>(List<T> listData, string fileName = "") where T : class;
+
+        /// <summary>
+        /// WriteByAttribute
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="listData">data source</param>
+        /// <param name="fileName">No file name, no file is written, but byte [] is returned</param>
+        /// <returns></returns>
+        Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "") where T : class;
 
         Dictionary<string, string> GetHeader<T>() where T : class;
     }

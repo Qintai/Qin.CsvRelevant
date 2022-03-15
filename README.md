@@ -2,7 +2,7 @@
 Csv Export    Install
 
 ```xml
-   Install-Package Qin.CsvRelevant -Version 1.0.3.1
+   Install-Package Qin.CsvRelevant -Version 1.0.4
 ```
 
 
@@ -42,11 +42,12 @@ public void ConfigureServices(IServiceCollection services)
  {
      if (fieldvalue is null)
          return fieldvalue;
-
-     if (column == "Date" && fieldname == "CreateTime")
+     
+     // The default value of the time field is "yyyy MM DD HH: mm: SS"
+     /*if (column == "Date" && fieldname == "CreateTime")
      {
          fieldvalue = fieldvalue is DateTime s1 ? s1.ToString("yyyy-MM-dd") : fieldvalue;
-     }
+     }*/
      return fieldvalue;
  };
 
