@@ -40,37 +40,38 @@ namespace SampleWebapi
         public async Task<IActionResult> Export0()
         {
             Console.WriteLine("Export0");
+            /*
+               List<dynamic> listData = new List<dynamic>();
+               listData.Add(new { name = "Sully1,667\t", Poe = 12333, kkId = "46100152200609203123332", date = DateTime.Now });
+               listData.Add(new { name = "Ben1,vv\t", Poe = 12333, kkId = "4610015220060920332332", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1,32,fds,we", Poe = 12333, kkId = "46100132522006092033", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1;", Poe = 12333, kkId = "4610015220060929873", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1|", Poe = 12333, kkId = "46100152200,609293321", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1", Poe = 12333, kkId = "4610015220060929233221", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1", Poe = 12334, kkId = "", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1", Poe = 12323, kkId = "", date = DateTime.Now });
+               listData.Add(new { name = "Fiy1", Poe = 12313, kkId = "", date = DateTime.Now });
+               Dictionary<string, string> column = new Dictionary<string, string>();
+               column.Add("MyName,32", "name");
+               column.Add("MyOrderId,rr", "Poe");
+               column.Add("kk,Id", "kkId");
+               column.Add("da,te", "date");
+            */
+
             List<dynamic> listData = new List<dynamic>();
-            listData.Add(new { name = "Sully1,667\t", Poe = 12333, kkId = "46100152200609203123332", date = DateTime.Now });
-            listData.Add(new { name = "Ben1,vv\t", Poe = 12333, kkId = "4610015220060920332332", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1,32,fds,we", Poe = 12333, kkId = "46100132522006092033", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1;", Poe = 12333, kkId = "4610015220060929873", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1|", Poe = 12333, kkId = "46100152200,609293321", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12333, kkId = "4610015220060929233221", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12334, kkId = "", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12323, kkId = "", date = DateTime.Now });
-            listData.Add(new { name = "Fiy1", Poe = 12313, kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Sull,y1", Poe = "46100152200609203123332", kkId = "", date = DateTime.Now });
+            listData.Add(new { name = "Ben1",   Poe = "46100152200609203123332", kkId = "", date = DateTime.Now });
+ 
             Dictionary<string, string> column = new Dictionary<string, string>();
-            column.Add("MyName,32", "name");
-            column.Add("MyOrderId,rr", "Poe");
-            column.Add("kk,Id", "kkId");
-            column.Add("da,te", "date");
+            column.Add("MyName", "name");
+            column.Add("MyOrderId", "Poe");
+
 
             var path = Path.Combine(localexportpath);
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            //CsvDataWriterOptions optiosn = new CsvDataWriterOptions()
-            //{
-            //    DateTimeFormat = "yyyy-MM-dd HH:mm:ss",
-            //    DateFormat = "yyyy-MM-dd",
-            //    NewLine = Environment.NewLine,
-            //    Style = CsvStyle.Standard,
-            //    WriteHeaders = false,
-            //};
-            // _csvGenerate.Options = optiosn;
-            //_csvGenerate.TimeFormatting = null;
-
+            _csvGenerate.Stdout = true; // Standardized output error, If the number of digits exceeds 15, truncate and supplement 0 in WPS
             var charBytes0 = await _csvGenerate.WriteAsync(listData, column, Path.Combine(localexportpath, "export0.csv"));
             return Ok(0);
         }

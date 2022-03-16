@@ -8,7 +8,7 @@ namespace Qin.CsvRelevant
     public interface ICsvGenerate
     {
         /// <summary>
-        /// Time field format, default "yyyy MM DD HH: mm: SS"
+        /// Time field format, default "yyyy-MM-dd HH:mm:ss"
         /// </summary>
         string TimeFormatting { get; set; }
 
@@ -16,6 +16,11 @@ namespace Qin.CsvRelevant
         /// Combine CSV text content for formatting
         /// </summary>
         Func<string, string, object, object> ForMat { get; set; }
+
+        /// <summary>
+        /// Original Output, default false
+        /// </summary>
+        bool Stdout { get; set; }
 
         CsvDataWriterOptions Options { get; set; }
 

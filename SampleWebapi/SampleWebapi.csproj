@@ -9,6 +9,10 @@
 		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
 	<!--<ItemGroup>
 	  <PackageReference Include="Qin.CsvRelevant" Version="1.0.1" />
 	</ItemGroup>-->

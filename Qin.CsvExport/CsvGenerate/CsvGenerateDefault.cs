@@ -15,6 +15,7 @@
         public CsvDataWriterOptions Options { get; set; }
         public string TimeFormatting { get; set; } = "yyyy-MM-dd HH:mm:ss";
         public Func<string, string, object, object> ForMat { get; set; }
+        public bool Stdout { get; set; } = false;
 
         public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "")
         {
@@ -24,19 +25,27 @@
             }
 
             StringBuilder stringbuilder = BuildStringBuilder(listData, column);
-
             char[] charArr = new char[stringbuilder.Length];
             stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
-
             byte[] charBytes = Encoding.Default.GetBytes(charArr);
+
             if (!string.IsNullOrWhiteSpace(fileName))
             {
-                using Stream stream = new MemoryStream(charBytes);
-                using StreamReader streamReader = new StreamReader(stream);
+                if (!Stdout)
+                {
+                    using StreamWriter streamWriter = new StreamWriter(fileName);
+                    streamWriter.Write(charArr, 0, charArr.Length);
+                    streamWriter.Flush();
+                }
+                else
+                {
+                    using Stream stream = new MemoryStream(charBytes);
+                    using StreamReader streamReader = new StreamReader(stream);
 
-                CsvDataReader csvcra = CsvDataReader.Create(streamReader);
-                using var csvdatawriter = CsvDataWriter.Create(fileName, Options);
-                csvdatawriter.Write(csvcra);
+                    CsvDataReader csvcra = CsvDataReader.Create(streamReader);
+                    using var csvdatawriter = CsvDataWriter.Create(fileName, Options);
+                    csvdatawriter.Write(csvcra);
+                }
             }
 
             return charBytes;
@@ -75,9 +84,12 @@
         {
             List<object> strch = new List<object>();
             StringBuilder builder = new StringBuilder();
-            var columns = column.Keys.Select(s => "\"" + s + "\t\"");
+            var tab = "";
+            if (!Stdout) tab = "	";
+            
+            var columns = column.Keys.Select(s => "\"" + s + tab + "\"");
             builder.AppendJoin<string>(',', columns);
-            builder.Append("\n");
+            builder.Append(Environment.NewLine);
             Type type = null;
             if (list.Count > 0) type = list[0].GetType();
 
@@ -97,12 +109,12 @@
                     if (ForMat != null)
                         fieldvalue = ForMat(i.Key, i.Value, fieldvalue);
 
-                    if (fieldvalue == null) strch.Add("\t");
-                    else strch.Add("\"" + fieldvalue.ToString() + "\t\"");
+                    if (fieldvalue == null) strch.Add("");
+                    else strch.Add("\"" + fieldvalue.ToString() + tab + "\"");
                 }
 
                 builder.AppendJoin<object>(',', strch);
-                builder.Append("\n");
+                builder.Append(Environment.NewLine);
                 strch.Clear();
             }
 
