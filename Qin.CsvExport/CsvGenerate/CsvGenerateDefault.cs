@@ -23,11 +23,13 @@
             {
                 throw new AggregateException("Parameter cannot be null");
             }
+            listData.Capacity = listData.Count;
 
             StringBuilder stringbuilder = BuildStringBuilder(listData, column);
             char[] charArr = new char[stringbuilder.Length];
             stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
             byte[] charBytes = Encoding.Default.GetBytes(charArr);
+            stringbuilder.Clear();
 
             if (!string.IsNullOrWhiteSpace(fileName))
             {
@@ -91,17 +93,19 @@
             builder.AppendJoin<string>(',', columns);
             builder.Append(Environment.NewLine);
             Type type = null;
+            PropertyInfo prop = null;
+            object fieldvalue = null;
             if (list.Count > 0) type = list[0].GetType();
 
             foreach (var item in list)
             {
                 foreach (var i in column)
                 {
-                    var prop = type.GetProperty(i.Value);
+                    prop = type.GetProperty(i.Value);
                     if (prop == null)
                         throw new Exception($"There is no {i.Value} attribute in the {type.Name} class. Please check whether the attribute is written incorrectly");
 
-                    object fieldvalue = prop.GetValue(item);
+                    fieldvalue = prop.GetValue(item);
 
                     if (TimeFormatting != null && fieldvalue != null && fieldvalue is DateTime date)
                         fieldvalue = date.ToString(TimeFormatting);
@@ -117,7 +121,7 @@
                 builder.Append(Environment.NewLine);
                 strch.Clear();
             }
-
+            builder.Capacity = builder.Length;
             return builder;
         }
 
@@ -125,12 +129,13 @@
         {
             Type type = typeof(T);
             Type column = typeof(ExportColumnAttribute);
+            ExportColumnAttribute portAttr = null;
             Dictionary<string, string> dic = new Dictionary<string, string>();
             foreach (PropertyInfo item in type.GetProperties())
             {
-                var model = item.GetCustomAttributes(column, true).Where(it => it is ExportColumnAttribute).SingleOrDefault() as ExportColumnAttribute;
-                if (model != null)
-                    dic.Add(model.ExcelColumnName, item.Name);
+                portAttr = item.GetCustomAttributes(column, true).Where(it => it is ExportColumnAttribute).SingleOrDefault() as ExportColumnAttribute;
+                if (portAttr != null)
+                    dic.Add(portAttr.ExcelColumnName, item.Name);
             }
             return dic;
         }
