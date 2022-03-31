@@ -2,7 +2,7 @@
 Csv Export    Install
 
 ```xml
-   Install-Package Qin.CsvRelevant -Version 1.0.4
+   Install-Package Qin.CsvRelevant -Version 1.0.4.2
 ```
 
 

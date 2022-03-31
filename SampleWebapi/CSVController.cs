@@ -39,6 +39,10 @@ namespace SampleWebapi
         [HttpGet]
         public async Task<IActionResult> Export0()
         {
+            var exece = CsvGenerateBuilder.Build();
+            var exece3 = CsvGenerateBuilder.Build();
+            bool flag = object.ReferenceEquals(exece, exece3);
+
             Console.WriteLine("Export0");
             /*
                List<dynamic> listData = new List<dynamic>();

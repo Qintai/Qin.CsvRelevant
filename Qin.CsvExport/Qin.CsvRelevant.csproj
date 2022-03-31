@@ -3,7 +3,7 @@
 		<TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
-		<Version>1.0.4.1-alpha</Version>
+		<Version>1.0.4.2</Version>
 		<Authors>Qin</Authors>
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
@@ -11,7 +11,7 @@
 		<PackageIcon>Qin.CsvRelevant_img.jpg</PackageIcon>
 		<PackageProjectUrl></PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Qintai/Qin.CsvRelevant</RepositoryUrl>
-		<PackageReleaseNotes>Compatible with special character processing</PackageReleaseNotes>
+		<PackageReleaseNotes>New csvgeneratebuilder</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
