@@ -1,10 +1,10 @@
-﻿using Sylvan.Data.Csv;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Qin.CsvRelevant
+﻿namespace Qin.CsvRelevant
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Threading.Tasks;
+
     public interface ICsvGenerate
     {
         /// <summary>
@@ -18,11 +18,9 @@ namespace Qin.CsvRelevant
         Func<string, string, object, object> ForMat { get; set; }
 
         /// <summary>
-        /// Original Output, default false
+        /// Original Output, default false, Add tab by default \t
         /// </summary>
         bool Stdout { get; set; }
-
-        CsvDataWriterOptions Options { get; set; }
 
         byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
 
@@ -47,6 +45,13 @@ namespace Qin.CsvRelevant
         /// <returns></returns>
         Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "") where T : class;
 
+        /// <summary>
+        /// Get first column
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         Dictionary<string, string> GetHeader<T>() where T : class;
+
+        StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column);
     }
 }

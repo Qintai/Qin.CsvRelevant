@@ -1,16 +1,10 @@
+using Microsoft.AspNetCore.Mvc;
+using Qin.CsvRelevant;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Qin.CsvRelevant;
-using Sylvan.Data.Csv;
 
 namespace SampleWebapi
 {
@@ -70,7 +64,6 @@ namespace SampleWebapi
             column.Add("MyName", "name");
             column.Add("MyOrderId", "Poe");
 
-
             var path = Path.Combine(localexportpath);
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -118,6 +111,9 @@ namespace SampleWebapi
                 return fieldvalue;
             };
 
+            StringBuilder stringBuilder = _csvGenerate.GetContent(listData2, culumn2);
+
+            _csvGenerate.TimeFormatting = null;
             var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, Path.Combine(localexportpath, "export1.csv"));
             return Ok(1); //File is SampleWebapi\Export
         }

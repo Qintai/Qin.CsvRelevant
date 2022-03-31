@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-
-namespace Qin.CsvRelevant
+﻿namespace Qin.CsvRelevant
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Reflection;
+
     public class Mapper
     {
         private readonly Dictionary<string, string> _dictionary = new Dictionary<string, string>();

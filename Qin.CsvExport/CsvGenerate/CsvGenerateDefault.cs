@@ -1,21 +1,19 @@
 ﻿namespace Qin.CsvRelevant
 {
-    using Sylvan.Data.Csv;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
 
     internal class CsvGenerateDefault : ICsvGenerate
     {
-        public CsvDataWriterOptions Options { get; set; }
         public string TimeFormatting { get; set; } = "yyyy-MM-dd HH:mm:ss";
         public Func<string, string, object, object> ForMat { get; set; }
         public bool Stdout { get; set; } = false;
+        public StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column) =>BuildStringBuilder(listData, column);
 
         public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "")
         {
@@ -33,23 +31,12 @@
 
             if (!string.IsNullOrWhiteSpace(fileName))
             {
-                if (!Stdout)
-                {
-                    using StreamWriter streamWriter = new StreamWriter(fileName);
-                    streamWriter.Write(charArr, 0, charArr.Length);
-                    streamWriter.Flush();
-                }
-                else
-                {
-                    using Stream stream = new MemoryStream(charBytes);
-                    using StreamReader streamReader = new StreamReader(stream);
-
-                    CsvDataReader csvcra = CsvDataReader.Create(streamReader);
-                    using var csvdatawriter = CsvDataWriter.Create(fileName, Options);
-                    csvdatawriter.Write(csvcra);
-                }
+               using (StreamWriter streamWriter = new StreamWriter(fileName))
+               {
+                   streamWriter.Write(charArr, 0, charArr.Length);
+                   streamWriter.Flush();
+               }
             }
-
             return charBytes;
         }
 
@@ -88,9 +75,13 @@
             StringBuilder builder = new StringBuilder();
             var tab = "";
             if (!Stdout) tab = "	";
-            
             var columns = column.Keys.Select(s => "\"" + s + tab + "\"");
+
+#if NET461 ||NETSTANDARD2_0_OR_GREATER
+            builder.Append(string.Join(",", columns));     
+#else
             builder.AppendJoin<string>(',', columns);
+#endif
             builder.Append(Environment.NewLine);
             Type type = null;
             PropertyInfo prop = null;
@@ -117,7 +108,11 @@
                     else strch.Add("\"" + fieldvalue.ToString() + tab + "\"");
                 }
 
+#if NET461 ||NETSTANDARD2_0_OR_GREATER
+                builder.Append(string.Join(",", strch));     
+#else 
                 builder.AppendJoin<object>(',', strch);
+#endif
                 builder.Append(Environment.NewLine);
                 strch.Clear();
             }

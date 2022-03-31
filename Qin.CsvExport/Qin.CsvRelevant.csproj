@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0;net6.0;</TargetFrameworks>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
-		<Version>1.0.4.2</Version>
+		<Version>1.1.1.1</Version>
 		<Authors>Qin</Authors>
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
@@ -14,8 +14,9 @@
 		<PackageReleaseNotes>New csvgeneratebuilder</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
 	  <Compile Remove="ZipGenerate\**" />
 	  <EmbeddedResource Remove="ZipGenerate\**" />
@@ -43,8 +44,6 @@
 		
 	<ItemGroup> 
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-		<PackageReference Include="Sylvan.Data" Version="0.1.3" />
-		<PackageReference Include="Sylvan.Data.Csv" Version="1.1.12" />
 	</ItemGroup>
 		
 </Project>
