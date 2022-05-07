@@ -58,8 +58,8 @@ namespace SampleWebapi
 
             List<dynamic> listData = new List<dynamic>();
             listData.Add(new { name = "Sull,y1", Poe = "46100152200609203123332", kkId = "", date = DateTime.Now });
-            listData.Add(new { name = "Ben1",   Poe = "46100152200609203123332", kkId = "", date = DateTime.Now });
- 
+            listData.Add(new { name = "Ben1", Poe = "46100152200609203123332", kkId = "", date = DateTime.Now });
+
             Dictionary<string, string> column = new Dictionary<string, string>();
             column.Add("MyName", "name");
             column.Add("MyOrderId", "Poe");
@@ -135,11 +135,64 @@ namespace SampleWebapi
 
             string localexportpath = "Export";
             var path = Path.Combine(localexportpath);
+
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
             var charBytes0 = await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\Export2.csv");
             return File(charBytes0, "text/csv", "Export2a.csv");
         }
+
+        /// <summary>
+        /// WriteByAttributeAsync 删除头
+        /// http://localhost:5000/CSV/Export3
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> Export3()
+        {
+            Console.WriteLine("Export3");
+
+            List<ExportEntity> listData = new List<ExportEntity>();
+            listData.Add(new ExportEntity { Name = "Sully", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "Ben", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "Fiy", Orderid = 12333, State = 3 });
+
+            string localexportpath = "Export";
+            var path = Path.Combine(localexportpath);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            var head = _csvGenerate.GetHeader<ExportEntity>();
+            var ppo = _csvGenerate.GetContent<ExportEntity>(listData, head);
+            StringBuilder stringbuilder = new StringBuilder();
+            {
+                // 最简单的移除方法，移除头部
+                string p1 = "\"Myorderid  \",\"myname   \",\"myState  \"";
+                ppo.Remove(0, p1.Length - 1 - 1);
+            }
+            {
+                // 有问题-报错
+                char[] oo = new char[ppo.Length];
+                ppo.CopyTo(0, oo, 35, ppo.Length);
+                var ss1 = new String(oo);
+            }
+            {
+                // 可行，但不是最佳
+                var ii1 = ppo.ToString().Split("\n");
+                for (int i = 1; i < ii1.Length; i++)
+                {
+                    stringbuilder.Append(ii1[i]);
+                }
+            }
+
+            char[] charArr = new char[stringbuilder.Length];
+            stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
+            byte[] charBytes = Encoding.Default.GetBytes(charArr);
+            stringbuilder.Clear();
+
+            return File(charBytes, "text/csv", "Export2cccca.csv");
+        }
+
     }
 }
