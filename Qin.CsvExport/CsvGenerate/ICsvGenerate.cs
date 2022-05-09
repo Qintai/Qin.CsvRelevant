@@ -22,6 +22,16 @@
         /// </summary>
         bool Stdout { get; set; }
 
+        /// <summary>
+        ///  true to append data to the file; false to overwrite the file. If the specified  file does not exist, this parameter has no effect, and the constructor creates a new file.
+        /// </summary>
+        bool Append { get; set; }
+
+        /// <summary>
+        /// Delete header
+        /// </summary>
+        bool RemoveHead { get; set; }
+
         byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
 
         /// <summary>

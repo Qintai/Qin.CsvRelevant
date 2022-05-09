@@ -144,7 +144,7 @@ namespace SampleWebapi
         }
 
         /// <summary>
-        /// WriteByAttributeAsync 删除头
+        /// WriteByAttributeAsync RemoveHead
         /// http://localhost:5000/CSV/Export3
         /// </summary>
         /// <returns></returns>
@@ -167,18 +167,18 @@ namespace SampleWebapi
             var ppo = _csvGenerate.GetContent<ExportEntity>(listData, head);
             StringBuilder stringbuilder = new StringBuilder();
             {
-                // 最简单的移除方法，移除头部
+                // The simplest removal method is to remove the head
                 string p1 = "\"Myorderid  \",\"myname   \",\"myState  \"";
                 ppo.Remove(0, p1.Length - 1 - 1);
             }
             {
-                // 有问题-报错
+                // There is a problem - report an error
                 char[] oo = new char[ppo.Length];
                 ppo.CopyTo(0, oo, 35, ppo.Length);
                 var ss1 = new String(oo);
             }
             {
-                // 可行，但不是最佳
+                // Feasible, but not optimal
                 var ii1 = ppo.ToString().Split("\n");
                 for (int i = 1; i < ii1.Length; i++)
                 {
@@ -194,5 +194,72 @@ namespace SampleWebapi
             return File(charBytes, "text/csv", "Export2cccca.csv");
         }
 
+        /// <summary>
+        /// WriteByAttributeAsync
+        /// http://localhost:5000/CSV/Export4
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> Export4()
+        {
+            var name = nameof(Export4);
+            Console.WriteLine(name);
+
+            List<ExportEntity> listData = new List<ExportEntity>();
+            listData.Add(new ExportEntity { Name = "Sully", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "Ben", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "Fiy", Orderid = 12333, State = 3 });
+
+            string localexportpath = "Export";
+            var path = Path.Combine(localexportpath);
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
+            _csvGenerate.Append = true;
+            _csvGenerate.RemoveHead = true;
+
+            listData.Clear();
+            listData.Add(new ExportEntity { Name = "Sully2", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "Ben2", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "Fiy2", Orderid = 12333, State = 3 });
+          await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
+
+            listData.Clear();
+            listData.Add(new ExportEntity { Name = "Sully3", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "Ben3", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "Fiy3", Orderid = 12333, State = 3 });
+          await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
+            return Ok($"{localexportpath}\\{name}.csv, success");
+        }
+
+        /// <summary>
+        /// WriteByAttributeAsync
+        /// http://localhost:5000/CSV/Export5
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> Export5()
+        {
+            var name = nameof(Export5);
+            Console.WriteLine(name);
+
+            List<ExportEntity> listData = new List<ExportEntity>();
+            listData.Add(new ExportEntity { Name = "bob", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "sos", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "fif", Orderid = 12333, State = 3 });
+
+            string localexportpath = "Export";
+            var path = Path.Combine(localexportpath);
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+             _csvGenerate.RemoveHead = true;
+            _csvGenerate.Append = false;
+            await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
+            return Ok($"{localexportpath}\\{name}.csv, success");
+        }
     }
 }

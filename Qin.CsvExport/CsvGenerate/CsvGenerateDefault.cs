@@ -13,7 +13,10 @@
         public string TimeFormatting { get; set; } = "yyyy-MM-dd HH:mm:ss";
         public Func<string, string, object, object> ForMat { get; set; }
         public bool Stdout { get; set; } = false;
-        public StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column) =>BuildStringBuilder(listData, column);
+        public bool Append { get; set; } = false;
+        public bool RemoveHead { get; set; } = false;
+
+        public StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column) => BuildStringBuilder(listData, column);
 
         public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "")
         {
@@ -24,18 +27,28 @@
             listData.Capacity = listData.Count;
 
             StringBuilder stringbuilder = BuildStringBuilder(listData, column);
-            char[] charArr = new char[stringbuilder.Length];
-            stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
+            char[] charArr = default;
+            if (RemoveHead)
+            {
+                var hadstringbuilderLength = BuildStringBuilder(new List<T>(), column).Length;
+                charArr = new char[stringbuilder.Length - hadstringbuilderLength];
+                stringbuilder.CopyTo(hadstringbuilderLength, charArr, 0, stringbuilder.Length - hadstringbuilderLength);
+            }
+            else
+            {
+                charArr = new char[stringbuilder.Length];
+                stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
+            }
             byte[] charBytes = Encoding.Default.GetBytes(charArr);
             stringbuilder.Clear();
 
             if (!string.IsNullOrWhiteSpace(fileName))
             {
-               using (StreamWriter streamWriter = new StreamWriter(fileName))
-               {
-                   streamWriter.Write(charArr, 0, charArr.Length);
-                   streamWriter.Flush();
-               }
+                using (StreamWriter streamWriter = new StreamWriter(fileName, append: Append))
+                {
+                    streamWriter.Write(charArr, 0, charArr.Length);
+                    streamWriter.Flush();
+                }
             }
             return charBytes;
         }
@@ -78,7 +91,7 @@
             var columns = column.Keys.Select(s => "\"" + s + tab + "\"");
 
 #if NET461 ||NETSTANDARD2_0_OR_GREATER
-            builder.Append(string.Join(",", columns));     
+            builder.Append(string.Join(",", columns));
 #else
             builder.AppendJoin<string>(',', columns);
 #endif
@@ -109,8 +122,8 @@
                 }
 
 #if NET461 ||NETSTANDARD2_0_OR_GREATER
-                builder.Append(string.Join(",", strch));     
-#else 
+                builder.Append(string.Join(",", strch));
+#else
                 builder.AppendJoin<object>(',', strch);
 #endif
                 builder.Append(Environment.NewLine);

@@ -24,6 +24,7 @@ namespace SampleWebapi
         {
             services.AddRazorPages();
             services.AddCsvGenerate();
+            //services.AddScopedByCsvGenerate();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

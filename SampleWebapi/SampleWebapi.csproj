@@ -11,7 +11,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="Qin.CsvRelevant" Version="1.1.1.1-alpha" />
+		<PackageReference Include="Qin.CsvRelevant" Version="1.1.1.2" />
 		<PackageReference Include="Sylvan.Data.Csv" Version="1.1.12" />
 	</ItemGroup>
 
