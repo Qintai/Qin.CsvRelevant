@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -17,6 +19,54 @@
         public bool RemoveHead { get; set; } = false;
 
         public StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column) => BuildStringBuilder(listData, column);
+
+        public async Task WritePhysicalFile<T>(string path, IDataReader reader, Func<IDataReader, T> func)
+            where T : class
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+                Debug.WriteLine($"{path}; Exists, just deleted");
+            }
+
+            Dictionary<string, string> column = GetHeader<T>();
+            StringBuilder stringbuilder = BuildStringBuilder(new List<T>(), column);
+            path += ".temp";
+            using StreamWriter streamWriter = new StreamWriter(path, append: false);
+            char[] charHeadArr = new char[stringbuilder.Length];
+            stringbuilder.CopyTo(0, charHeadArr, 0, stringbuilder.Length);
+            await streamWriter.WriteAsync(charHeadArr, 0, charHeadArr.Length); // Write Head
+            stringbuilder.Clear();
+
+            streamWriter.Flush();
+            streamWriter.Close();
+
+            int hadstringbuilderLength = BuildStringBuilder(new List<T>(), column).Length;
+            while (reader.Read())
+            {
+                T model = func(reader);
+
+                stringbuilder = BuildStringBuilder(new List<T>() { model }, column);
+                char[] charArr = new char[stringbuilder.Length];
+
+                charArr = new char[stringbuilder.Length - hadstringbuilderLength];
+                stringbuilder.CopyTo(hadstringbuilderLength, charArr, 0, stringbuilder.Length - hadstringbuilderLength);
+
+                using StreamWriter streamWriter2 = new StreamWriter(path, append: true);
+                await streamWriter2.WriteAsync(charArr, 0, charArr.Length);
+
+                stringbuilder.Clear();
+                streamWriter2.Flush();
+                streamWriter2.Close();
+            }
+
+            if (File.Exists(path))
+            {
+                var newPath = path.Replace(".temp", "");
+                File.Move(path, newPath);
+                Debug.WriteLine($"{newPath}; File generated successfully");
+            }
+        }
 
         public byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "")
         {

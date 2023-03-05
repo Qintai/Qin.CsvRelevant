@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -21,6 +22,16 @@
         /// Original Output, default false, Add tab by default \t
         /// </summary>
         bool Stdout { get; set; }
+
+        /// <summary>
+        /// Writing physical files does not occupy memory
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="path"></param>
+        /// <param name="reader"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        Task WritePhysicalFile<T>(string path, IDataReader reader, Func<IDataReader, T> func) where T : class;
 
         /// <summary>
         ///  true to append data to the file; false to overwrite the file. If the specified  file does not exist, this parameter has no effect, and the constructor creates a new file.
