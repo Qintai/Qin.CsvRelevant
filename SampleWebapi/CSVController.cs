@@ -1,3 +1,4 @@
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Qin.CsvRelevant;
 using System;
@@ -92,7 +93,6 @@ namespace SampleWebapi
                                       //.Map<ExportEntity>("Isdel", a => a.Isdel)
                                       .Map<ExportEntity>("Date", a => a.CreateTime)
                                       .Map<ExportEntity>("Time", a => a.CreateTime)
-                                      .Map<ExportEntity>("Area", a => a.Area)
                                       .Map<ExportEntity>("OtherTime", a => a.OtherTime).BuildDictionary();
 
             _csvGenerate.ForMat = (column, fieldname, fieldvalue) =>
@@ -261,5 +261,38 @@ namespace SampleWebapi
             await _csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
             return Ok($"{localexportpath}\\{name}.csv, success");
         }
+
+        /// <summary>
+        /// WriteByAttributeAsync
+        /// http://localhost:5000/CSV/Export6
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> Export6()
+        {
+            var name = nameof(Export6);
+            Console.WriteLine(name);
+
+            List<ExportEntity> listData = new List<ExportEntity>();
+            listData.Add(new ExportEntity { Name = "bob", Orderid = 12333, State = 1 });
+
+            string localexportpath = "Export";
+            var path = Path.Combine(localexportpath);
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            var connstr = await System.IO.File.ReadAllTextAsync("D://connstr.txt");
+            var sqlstr = await System.IO.File.ReadAllTextAsync("D://sqlstr.txt");
+            using var connStr = new MySqlConnector.MySqlConnection(connstr);
+            connStr.Open();
+            var reader = connStr.ExecuteReader(sqlstr);
+            var func = reader.GetRowParser<ExportEntity>();
+            await _csvGenerate.WritePhysicalFile($"{localexportpath}\\{name}.csv", reader, (reader) =>
+            {
+                var model = func(reader);
+                return model;
+            });
+            return Ok($"{path} build success");
+        }        
     }
 }

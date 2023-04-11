@@ -10,15 +10,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.0.123" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="Qin.CsvRelevant" Version="1.1.1.2" />
 		<PackageReference Include="Sylvan.Data.Csv" Version="1.1.12" />
+		<PackageReference Include="MySqlConnector" Version="2.2.5" />
+		<!--<PackageReference Include="Qin.CsvRelevant" Version="1.1.1.2" />-->
 	</ItemGroup>
 
 
-	<!--<ItemGroup>
+	<ItemGroup>
 		<ProjectReference Include="..\Qin.CsvExport\Qin.CsvRelevant.csproj" />
-	</ItemGroup>-->
+	</ItemGroup>
 
 
 </Project>
