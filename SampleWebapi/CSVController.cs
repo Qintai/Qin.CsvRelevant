@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Qin.CsvRelevant;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,12 @@ namespace SampleWebapi
     {
         ICsvGenerate _csvGenerate;
         string localexportpath = "Export";
+        ILogger<CSVController> _logger;
 
-        public CSVController(ICsvGenerate csv)
+        public CSVController(ICsvGenerate csv, ILogger<CSVController> logger)
         {
             _csvGenerate = csv;
+            _logger = logger;
         }
 
         private List<ExportEntity> GetList()

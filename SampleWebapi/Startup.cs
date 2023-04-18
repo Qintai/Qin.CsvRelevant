@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Qin.CsvRelevant;
+using Microsoft.Extensions.Logging;
+using Jack.RemoteLog;
 
 namespace SampleWebapi
 {
@@ -24,7 +26,14 @@ namespace SampleWebapi
         {
             services.AddRazorPages();
             services.AddCsvGenerate();
-            //services.AddScopedByCsvGenerate();
+
+            // https://github.com/simpleway2016/JackRemoteLog
+            services.AddLogging(builder =>
+            {
+                builder.AddConfiguration(Configuration.GetSection("Logging"));
+                builder.AddConsole();
+                builder.UseJackRemoteLogger(Configuration);
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

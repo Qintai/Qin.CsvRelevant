@@ -33,6 +33,7 @@
             StringBuilder stringbuilder = BuildStringBuilder(new List<T>(), column);
             path += ".temp";
             using StreamWriter streamWriter = new StreamWriter(path, append: false);
+            int hadstringbuilderLength = stringbuilder.Length;
             char[] charHeadArr = new char[stringbuilder.Length];
             stringbuilder.CopyTo(0, charHeadArr, 0, stringbuilder.Length);
             await streamWriter.WriteAsync(charHeadArr, 0, charHeadArr.Length); // Write Head
@@ -41,15 +42,12 @@
             streamWriter.Flush();
             streamWriter.Close();
 
-            int hadstringbuilderLength = BuildStringBuilder(new List<T>(), column).Length;
             while (reader.Read())
             {
                 T model = func(reader);
 
                 stringbuilder = BuildStringBuilder(new List<T>() { model }, column);
-                char[] charArr = new char[stringbuilder.Length];
-
-                charArr = new char[stringbuilder.Length - hadstringbuilderLength];
+                char[] charArr = new char[stringbuilder.Length - hadstringbuilderLength];
                 stringbuilder.CopyTo(hadstringbuilderLength, charArr, 0, stringbuilder.Length - hadstringbuilderLength);
 
                 using StreamWriter streamWriter2 = new StreamWriter(path, append: true);
