@@ -3,7 +3,7 @@
 		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0;net6.0;</TargetFrameworks>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
-		<Version>1.1.1.3-alpha</Version>
+		<Version>1.1.1.4</Version>
 		<Authors>Qin</Authors>
 		<PackageId>Qin.CsvRelevant</PackageId>
 		<Company></Company>
