@@ -16,8 +16,9 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<LangVersion>latest</LangVersion>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
-
+	
 	<ItemGroup>
 	  <Compile Remove="ZipGenerate\**" />
 	  <EmbeddedResource Remove="ZipGenerate\**" />
