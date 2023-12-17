@@ -72,9 +72,9 @@ namespace SampleWebapi
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            _csvGenerate.Stdout = true; // Standardized output error, If the number of digits exceeds 15, truncate and supplement 0 in WPS
+            _csvGenerate.Stdout = false; //改成false后，标准化输出错误，如果数字超过15，则在WPS中截断并补充0
             var charBytes0 = await _csvGenerate.WriteAsync(listData, column, Path.Combine(localexportpath, "export0.csv"));
-            return Ok(0);
+            return Ok(path);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace SampleWebapi
 
             _csvGenerate.TimeFormatting = null;
             var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, Path.Combine(localexportpath, "export1.csv"));
-            return Ok(1); //File is SampleWebapi\Export
+            return Ok(Path.Combine(localexportpath, "export1.csv")); //File is SampleWebapi\Export
         }
 
         /// <summary>
@@ -169,17 +169,6 @@ namespace SampleWebapi
             var head = _csvGenerate.GetHeader<ExportEntity>();
             var ppo = _csvGenerate.GetContent<ExportEntity>(listData, head);
             StringBuilder stringbuilder = new StringBuilder();
-            {
-                // The simplest removal method is to remove the head
-                string p1 = "\"Myorderid  \",\"myname   \",\"myState  \"";
-                ppo.Remove(0, p1.Length - 1 - 1);
-            }
-            {
-                // There is a problem - report an error
-                char[] oo = new char[ppo.Length];
-                ppo.CopyTo(0, oo, 35, ppo.Length);
-                var ss1 = new String(oo);
-            }
             {
                 // Feasible, but not optimal
                 var ii1 = ppo.ToString().Split("\n");
@@ -296,6 +285,38 @@ namespace SampleWebapi
                 return model;
             });
             return Ok($"{path} build success");
-        }        
+        }
+
+        /// <summary>
+        /// WriteByAttributeAsync
+        /// http://localhost:5000/CSV/Export7
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> Export7()
+        {
+            var name = nameof(Export7);
+            Console.WriteLine(name);
+
+            List<ExportEntity> listData = new List<ExportEntity>();
+            listData.Add(new ExportEntity { Name = "bob", Orderid = 12333, State = 1 });
+
+            string localexportpath = "Export";
+            var path = Path.Combine(localexportpath);
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            var connstr = await System.IO.File.ReadAllTextAsync("D://connstr.txt");
+            var sqlstr = await System.IO.File.ReadAllTextAsync("D://sqlstr.txt");
+            using var conn = new MySqlConnector.MySqlConnection(connstr);
+
+            var config = new WritePhysicalFileDbConfig(conn, sqlstr);
+            // await _csvGenerate.WritePhysicalFile<ExportEntity>($"{localexportpath}\\{name}.csv", config, null);
+            await _csvGenerate.WritePhysicalFile<ExportEntity>($"{localexportpath}\\{name}.csv", config, (model) =>
+            {
+                model.Name += "******";
+            });
+            return Ok($"{path} build success");
+        }
     }
 }

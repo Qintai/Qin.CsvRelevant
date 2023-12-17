@@ -2,77 +2,79 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Text;
     using System.Threading.Tasks;
 
-    public interface ICsvGenerate
+    public partial interface ICsvGenerate
     {
         /// <summary>
-        /// Time field format, default "yyyy-MM-dd HH:mm:ss"
+        /// 导出日期格式, 默认是 "yyyy-MM-dd HH:mm:ss"
         /// </summary>
         string TimeFormatting { get; set; }
 
         /// <summary>
-        /// Combine CSV text content for formatting
+        /// 组合CSV文本内容进行格式化
         /// </summary>
-        Func<string, string, object, object> ForMat { get; set; }
+        Func<string, string, object, object>? ForMat { get; set; }
 
         /// <summary>
-        /// Original Output, default false, Add tab by default \t
+        /// 输出内容是否带\t，默认 true
         /// </summary>
         bool Stdout { get; set; }
 
         /// <summary>
-        /// Writing physical files does not occupy memory
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="path"></param>
-        /// <param name="reader"></param>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        Task WritePhysicalFile<T>(string path, IDataReader reader, Func<IDataReader, T> func) where T : class;
-
-        /// <summary>
-        ///  true to append data to the file; false to overwrite the file. If the specified  file does not exist, this parameter has no effect, and the constructor creates a new file.
+        ///  true将数据附加到文件中；false覆盖文件。如果指定的文件不存在，则此参数无效，构造函数将创建一个新文件。
         /// </summary>
         bool Append { get; set; }
 
         /// <summary>
-        /// Delete header
+        /// 删除csv头
         /// </summary>
         bool RemoveHead { get; set; }
 
+        /// <summary>
+        /// 写入 byte
+        /// </summary>
         byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
 
         /// <summary>
-        /// WriteCsv
+        /// 写入 byte
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="listData">data source</param>
-        /// <param name="column">header</param>
-        /// <param name="fileName">No file name, no file is written, but byte [] is returned</param>
+        /// <param name="listData">数据源</param>
+        /// <param name="column">列</param>
+        /// <param name="fileName">如果没有文件名，没有写入任何文件，但返回byte[]</param>
         /// <returns></returns>
         Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
 
+        /// <summary>
+        /// 写入 byte 根据实体指定的特性
+        /// </summary>
         byte[] WriteByAttribute<T>(List<T> listData, string fileName = "") where T : class;
 
         /// <summary>
-        /// WriteByAttribute
+        /// 写入 byte 根据实体指定的特性
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="listData">data source</param>
-        /// <param name="fileName">No file name, no file is written, but byte [] is returned</param>
+        /// <param name="listData">数据源</param>
+        /// <param name="fileName">如果没有文件名，没有写入任何文件，但返回byte[]</param>
         /// <returns></returns>
         Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "") where T : class;
 
         /// <summary>
-        /// Get first column
+        /// 获取列名
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         Dictionary<string, string> GetHeader<T>() where T : class;
 
+        /// <summary>
+        /// 获取CSV主体内容
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="listData">数据源</param>
+        /// <param name="column">列</param>
+        /// <returns></returns>
         StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column);
     }
 }
