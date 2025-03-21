@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Data;
     using System.Text;
     using System.Threading.Tasks;
@@ -43,7 +44,7 @@
         /// </summary>
         bool RemoveHead { get; set; }
 
-        byte[] Write<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
+        byte[] Write<T>(List<T> listData, ReadOnlyDictionary<string, string> column, string fileName = "");
 
         /// <summary>
         /// WriteCsv
@@ -53,7 +54,7 @@
         /// <param name="column">header</param>
         /// <param name="fileName">No file name, no file is written, but byte [] is returned</param>
         /// <returns></returns>
-        Task<byte[]> WriteAsync<T>(List<T> listData, Dictionary<string, string> column, string fileName = "");
+        Task<byte[]> WriteAsync<T>(List<T> listData, ReadOnlyDictionary<string, string> column, string fileName = "");
 
         byte[] WriteByAttribute<T>(List<T> listData, string fileName = "") where T : class;
 
@@ -71,8 +72,15 @@
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        Dictionary<string, string> GetHeader<T>() where T : class;
+        ReadOnlyDictionary<string, string> GetHeader<T>() where T : class;
 
-        StringBuilder GetContent<T>(List<T> listData, Dictionary<string, string> column);
+        /// <summary>
+        /// Get first column
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="listData"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        StringBuilder GetContent<T>(List<T> listData, ReadOnlyDictionary<string, string> column);
     }
 }

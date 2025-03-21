@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Qin.CsvRelevant;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -73,7 +74,9 @@ namespace SampleWebapi
                 Directory.CreateDirectory(path);
 
             _csvGenerate.Stdout = true; // Standardized output error, If the number of digits exceeds 15, truncate and supplement 0 in WPS
-            var charBytes0 = await _csvGenerate.WriteAsync(listData, column, Path.Combine(localexportpath, "export0.csv"));
+            var charBytes0 = await _csvGenerate.WriteAsync(listData, 
+                new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(column),
+                Path.Combine(localexportpath, "export0.csv"));
             return Ok(0);
         }
 
@@ -114,10 +117,10 @@ namespace SampleWebapi
                 return fieldvalue;
             };
 
-            StringBuilder stringBuilder = _csvGenerate.GetContent(listData2, culumn2);
+            StringBuilder stringBuilder = _csvGenerate.GetContent(listData2, new ReadOnlyDictionary<string, string>(culumn2));
 
             _csvGenerate.TimeFormatting = null;
-            var charBytes2 = await _csvGenerate.WriteAsync(listData2, culumn2, Path.Combine(localexportpath, "export1.csv"));
+            var charBytes2 = await _csvGenerate.WriteAsync(listData2, new ReadOnlyDictionary<string, string>(culumn2), Path.Combine(localexportpath, "export1.csv"));
             return Ok(1); //File is SampleWebapi\Export
         }
 
