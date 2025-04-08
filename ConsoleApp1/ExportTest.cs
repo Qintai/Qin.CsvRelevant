@@ -21,7 +21,7 @@ namespace ConsoleApp1
             }
         }
 
-        [Benchmark]
+        // [Benchmark]
         public void Export()
         {
             var csvGenerate = CsvGenerateBuilder.Build();
@@ -46,34 +46,28 @@ namespace ConsoleApp1
         [Benchmark]
         public async Task Export4()
         {
-            var csvGenerate = CsvGenerateBuilder.Build();
-            var name = nameof(Export4);
             List<ExportEntity> listData = new List<ExportEntity>();
             listData.Add(new ExportEntity { Name = "Sully", Orderid = 12333, State = 1 });
             listData.Add(new ExportEntity { Name = "Ben", Orderid = 12333, State = 2 });
             listData.Add(new ExportEntity { Name = "Fiy", Orderid = 12333, State = 3 });
+            listData.Add(new ExportEntity { Name = "Sully3", Orderid = 12333, State = 1 });
+            listData.Add(new ExportEntity { Name = "Ben3", Orderid = 12333, State = 2 });
+            listData.Add(new ExportEntity { Name = "Fiy3", Orderid = 12333, State = 3 });
 
-            string localexportpath = "Export";
+            for (int i = 0; i < 20000; i++)
+            {
+                listData.Add(new ExportEntity { Name = "ABC" + i, Orderid = 12333 + i, State = 1 + i });
+            }
+
+            string localexportpath = "A_Export";
             var path = Path.Combine(localexportpath);
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            await csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
-            // csvGenerate.Append = true;
-            // csvGenerate.RemoveHead = true;
-            listData.Clear();
-            listData.Add(new ExportEntity { Name = "Sully2", Orderid = 12333, State = 1 });
-            listData.Add(new ExportEntity { Name = "Ben2", Orderid = 12333, State = 2 });
-            listData.Add(new ExportEntity { Name = "Fiy2", Orderid = 12333, State = 3 });
-            await csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
-
-            listData.Clear();
-            listData.Add(new ExportEntity { Name = "Sully3", Orderid = 12333, State = 1 });
-            listData.Add(new ExportEntity { Name = "Ben3", Orderid = 12333, State = 2 });
-            listData.Add(new ExportEntity { Name = "Fiy3", Orderid = 12333, State = 3 });
-            await csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\{name}.csv");
-            string pp = $"{localexportpath}\\{name}.csv";
+            var csvGenerate = CsvGenerateBuilder.Build();
+            await csvGenerate.WriteByAttributeAsync(listData, $"{localexportpath}\\Export4.csv");
+            string pp = $"{localexportpath}\\Export4.csv";
         }
     }
 }
