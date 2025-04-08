@@ -1,25 +1,21 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
 using Qin.CsvRelevant;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
-namespace ConsoleApp1
+namespace ConsoleTest
 {
     [MemoryDiagnoser(true)]
-    [Config(typeof(Config))]  // 添加这行
+    //[Config(typeof(Config))]  // 添加这行
     public class ExportTest
     {
-       // 添加配置类
-        private class Config : ManualConfig
-        {
-            public Config()
-            {
-                WithOptions(ConfigOptions.DisableOptimizationsValidator);
-            }
-        }
+        //// 添加配置类
+        // private class Config : ManualConfig
+        // {
+        //     public Config()
+        //     {
+        //         WithOptions(ConfigOptions.DisableOptimizationsValidator);
+        //     }
+        // }
 
         // [Benchmark]
         public void Export()
@@ -40,7 +36,7 @@ namespace ConsoleApp1
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var charBytes0 = csvGenerate.Write(listData, column, Path.Combine(localexportpath, "ConsoleApp1.csv"));
+            var charBytes0 = csvGenerate.Write(listData, new ReadOnlyDictionary<string, string>(column), Path.Combine(localexportpath, "ConsoleApp1.csv"));
         }
 
         [Benchmark]

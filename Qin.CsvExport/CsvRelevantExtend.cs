@@ -5,34 +5,29 @@
 
     public static class CsvRelevantExtend
     {
-        public static IServiceCollection AddCsvGenerate(this IServiceCollection services)
+        private static IServiceCollection AddCsvGenerateCore(this IServiceCollection services, 
+            ServiceLifetime lifetime)
         {
             if (services == null)
             {
-                throw new ArgumentNullException("services");
+                throw new ArgumentNullException(nameof(services));
             }
-            services.AddSingleton<ICsvGenerate, CsvGenerateDefault>();
+            
+            services.Add(new ServiceDescriptor(
+                typeof(ICsvGenerate), 
+                typeof(CsvGenerateDefault), 
+                lifetime));
+                
             return services;
         }
+
+        public static IServiceCollection AddCsvGenerate(this IServiceCollection services)
+            => AddCsvGenerateCore(services, ServiceLifetime.Singleton);
 
         public static IServiceCollection AddScopedByCsvGenerate(this IServiceCollection services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException("services");
-            }
-            services.AddScoped<ICsvGenerate, CsvGenerateDefault>();
-            return services;
-        }
+            => AddCsvGenerateCore(services, ServiceLifetime.Scoped);
 
         public static IServiceCollection AddTransientByCsvGenerate(this IServiceCollection services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException("services");
-            }
-            services.AddTransient<ICsvGenerate, CsvGenerateDefault>();
-            return services;
-        }
+            => AddCsvGenerateCore(services, ServiceLifetime.Transient);
     }
 }

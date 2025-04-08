@@ -3,6 +3,7 @@
     using Microsoft.Extensions.ObjectPool;
     using System;
     using System.Buffers;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Data;
@@ -13,15 +14,61 @@
     using System.Text;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// CSV生成器的默认实现类
+    /// </summary>
     internal class CsvGenerateDefault : ICsvGenerate
     {
+        /// <summary>
+        /// 字符数组池，用于复用字符数组以减少内存分配
+        /// </summary>
         private static readonly ArrayPool<char> CharArrayPool = ArrayPool<char>.Shared;
+
+        /// <summary>
+        /// StringBuilder对象池，用于复用StringBuilder实例以提升性能
+        /// </summary>
         private static readonly ObjectPool<StringBuilder> StringBuilderPool = new DefaultObjectPoolProvider().CreateStringBuilderPool();
 
+        /// <summary>
+        /// 属性信息缓存，用于存储类型的属性反射信息，避免重复反射
+        /// </summary>
+        private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertyCache = new();
+
+        /// <summary>
+        /// 缓冲区大小：80KB，用于文件读写操作
+        /// </summary>
+        private const int BufferSize = 81920; // 80KB buffer
+
+        /// <summary>
+        /// 表头缓存，用于存储类型的CSV表头信息，避免重复解析特性
+        /// </summary>
+        private static readonly ConcurrentDictionary<Type, ReadOnlyDictionary<string, string>> HeaderCache = new();
+
+        /// <summary>
+        /// 日期时间的格式化字符串
+        /// </summary>
         public string TimeFormatting { get; set; } = "yyyy-MM-dd HH:mm:ss";
+
+        /// <summary>
+        /// 自定义格式化委托，用于自定义字段的格式化逻辑
+        /// 参数：列名、属性名、属性值
+        /// 返回：格式化后的值
+        /// </summary>
         public Func<string, string, object, object> ForMat { get; set; }
+
+        /// <summary>
+        /// 是否输出到标准输出流，影响制表符的处理
+        /// </summary>
         public bool Stdout { get; set; } = false;
+
+        /// <summary>
+        /// 写入文件时是否采用追加模式
+        /// </summary>
         public bool Append { get; set; } = false;
+
+        /// <summary>
+        /// 是否移除CSV的表头信息
+        /// </summary>
         public bool RemoveHead { get; set; } = false;
 
         public StringBuilder GetContent<T>(List<T> listData, ReadOnlyDictionary<string, string> column)
@@ -33,189 +80,231 @@
         public async Task WritePhysicalFile<T>(string path, IDataReader reader, Func<IDataReader, T> func)
             where T : class
         {
+            var tempPath = path + ".temp";
+            var column = GetHeader<T>();
+
+            using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize);
+            using var bufferedStream = new BufferedStream(fileStream, BufferSize);
+            using var writer = new StreamWriter(bufferedStream, Encoding.UTF8);
+
+            // 写表头
+            var headerBuilder = BuildStringBuilder(Span<T>.Empty, column);
+            await writer.WriteAsync(headerBuilder.ToString());
+            StringBuilderPool.Return(headerBuilder);
+
+            // 写表行数据
+            var buffer = CharArrayPool.Rent(BufferSize);
+            try
+            {
+                while (reader.Read())
+                {
+                    var model = func(reader);
+                    var builder = BuildStringBuilder(new Span<T>(new[] { model }), column);
+                    await writer.WriteAsync(builder.ToString());
+                    StringBuilderPool.Return(builder);
+                }
+            }
+            finally
+            {
+                CharArrayPool.Return(buffer);
+            }
+
+            await writer.FlushAsync();
+
+            // 原子操作替换文件
             if (File.Exists(path))
             {
-                File.Delete(path);
-                Debug.WriteLine($"{path}; Exists, just deleted");
-            }
-
-            ReadOnlyDictionary<string, string> column = GetHeader<T>();
-            Span<T> span_list = Enumerable.Empty<T>().ToArray().AsSpan();
-            StringBuilder stringbuilder = BuildStringBuilder(span_list, column);
-            path += ".temp";
-            using StreamWriter streamWriter = new StreamWriter(path, append: false);
-            int hadstringbuilderLength = stringbuilder.Length;
-            char[] charHeadArr = CharArrayPool.Rent(stringbuilder.Length);
-            stringbuilder.CopyTo(0, charHeadArr, 0, stringbuilder.Length);
-            await streamWriter.WriteAsync(charHeadArr, 0, stringbuilder.Length); // Write Head
-            stringbuilder.Clear();
-            CharArrayPool.Return(charHeadArr);
-
-            streamWriter.Flush();
-            streamWriter.Close();
-
-            while (reader.Read())
-            {
-                T model = func(reader);
-
-                Span<T> span_list2 = Enumerable.Empty<T>().ToArray().AsSpan();
-                stringbuilder = BuildStringBuilder(span_list2, column);
-                char[] charArr = CharArrayPool.Rent(stringbuilder.Length - hadstringbuilderLength);
-                stringbuilder.CopyTo(hadstringbuilderLength, charArr, 0, stringbuilder.Length - hadstringbuilderLength);
-
-                using StreamWriter streamWriter2 = new StreamWriter(path, append: true);
-                await streamWriter2.WriteAsync(charArr, 0, stringbuilder.Length - hadstringbuilderLength);
-
-                stringbuilder.Clear();
-                CharArrayPool.Return(charArr);
-                streamWriter2.Flush();
-                streamWriter2.Close();
-            }
-
-            if (File.Exists(path))
-            {
-                var newPath = path.Replace(".temp", "");
-                File.Move(path, newPath);
-                Debug.WriteLine($"{newPath}; File generated successfully");
-            }
-        }
-
-        public byte[] Write<T>(List<T> listData, ReadOnlyDictionary<string, string> column, string fileName = "")
-        {
-            if (listData == null || column == null)
-            {
-                throw new AggregateException("Parameter cannot be null");
-            }
-            listData.Capacity = listData.Count;
-            Span<T> span_list = listData.ToArray().AsSpan();
-            StringBuilder stringbuilder = BuildStringBuilder(span_list, column);
-            char[] charArr = default;
-            if (RemoveHead)
-            {
-                Span<T> empty_span_list = Enumerable.Empty<T>().ToArray().AsSpan();
-                var hadstringbuilderLength = BuildStringBuilder(empty_span_list, column).Length;
-                charArr = CharArrayPool.Rent(stringbuilder.Length - hadstringbuilderLength);
-                stringbuilder.CopyTo(hadstringbuilderLength, charArr, 0, stringbuilder.Length - hadstringbuilderLength);
+                File.Replace(tempPath, path, null);
             }
             else
             {
-                charArr = CharArrayPool.Rent(stringbuilder.Length);
-                stringbuilder.CopyTo(0, charArr, 0, stringbuilder.Length);
+                File.Move(tempPath, path);
             }
-            byte[] charBytes = Encoding.Default.GetBytes(charArr, 0, stringbuilder.Length);
-            stringbuilder.Clear();
-            CharArrayPool.Return(charArr);
-
-            if (!string.IsNullOrWhiteSpace(fileName))
-            {
-                using (StreamWriter streamWriter = new StreamWriter(fileName, append: Append))
-                {
-                    streamWriter.Write(charArr, 0, stringbuilder.Length);
-                    streamWriter.Flush();
-                }
-            }
-            return charBytes;
-        }
-
-        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "") where T : class
-        {
-            if (listData == null)
-            {
-                throw new AggregateException("Parameter cannot be null");
-            }
-
-            ReadOnlyDictionary<string, string> column = GetHeader<T>();
-            return Write(listData, column, fileName);
-        }
-
-        public async Task<byte[]> WriteAsync<T>(List<T> listData, ReadOnlyDictionary<string, string> column, string fileName = "")
-        {
-            var bytearr = await Task.Run(() =>
-            {
-                return Write<T>(listData, column, fileName);
-            });
-            return bytearr;
-        }
-
-        public async Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "") where T : class
-        {
-            var bytearr = await Task.Run(() =>
-            {
-                return WriteByAttribute<T>(listData, fileName);
-            });
-            return bytearr;
         }
 
         public StringBuilder BuildStringBuilder<T>(Span<T> list, ReadOnlyDictionary<string, string> column)
         {
-            List<object> strch = new List<object>();
-            StringBuilder builder = StringBuilderPool.Get();
-            var tab = "";
-            if (!Stdout) tab = "	";
-            var columns = column.Keys.Select(s => "\"" + s + tab + "\"");
+            var builder = StringBuilderPool.Get();
+            builder.Clear();
 
-#if NET461 || NETSTANDARD2_0_OR_GREATER
-                builder.Append(string.Join(",", columns));
-#else
-            builder.AppendJoin<string>(',', columns);
-#endif
-            builder.Append(Environment.NewLine);
-            Type type = null;
-            PropertyInfo prop = null;
-            object fieldvalue = null;
-            // if (list.Count > 0) type = list[0].GetType();
-            type = list[0]?.GetType();
-            if (type == null)
+            // 预分配容量
+            var estimatedCapacity = (column.Count * 20 + 2) * (list.Length + 1);
+            if (builder.Capacity < estimatedCapacity)
             {
-                return builder;
+                builder.Capacity = estimatedCapacity;
             }
 
+            // 写入表头
+            var tab = Stdout ? "" : "	";
+            var isFirst = true;
+            foreach (var key in column.Keys)
+            {
+                if (!isFirst) builder.Append(',');
+                builder.Append('"').Append(key).Append(tab).Append('"');
+                isFirst = false;
+            }
+            builder.AppendLine();
+
+            if (list.IsEmpty || list[0] == null) return builder;
+
+            // 缓存类型的属性信息
+            var type = list[0].GetType();
+            var properties = PropertyCache.GetOrAdd(type, t =>
+                column.Values.Select(v => t.GetProperty(v)).ToArray());
+
+            // 写入数据行
             foreach (var item in list)
             {
-                foreach (var i in column)
+                isFirst = true;
+                foreach (var prop in properties)
                 {
-                    prop = type.GetProperty(i.Value);
-                    if (prop == null)
-                        throw new Exception($"There is no {i.Value} attribute in the {type.Name} class. Please check whether the attribute is written incorrectly");
+                    if (!isFirst) builder.Append(',');
+                    var value = prop.GetValue(item);
 
-                    fieldvalue = prop.GetValue(item);
-
-                    if (TimeFormatting != null && fieldvalue != null && fieldvalue is DateTime date)
-                        fieldvalue = date.ToString(TimeFormatting);
-
-                    if (ForMat != null)
-                        fieldvalue = ForMat(i.Key, i.Value, fieldvalue);
-
-                    if (fieldvalue == null) strch.Add("");
-                    else strch.Add("\"" + fieldvalue.ToString() + tab + "\"");
+                    if (value == null)
+                    {
+                        builder.Append("\"\"");
+                    }
+                    else if (value is DateTime date)
+                    {
+                        builder.Append('"').Append(date.ToString(TimeFormatting)).Append(tab).Append('"');
+                    }
+                    else
+                    {
+                        builder.Append('"').Append(value.ToString()).Append(tab).Append('"');
+                    }
+                    isFirst = false;
                 }
-
-#if NET461 || NETSTANDARD2_0_OR_GREATER
-                    builder.Append(string.Join(",", strch));
-#else
-                builder.AppendJoin<object>(',', strch);
-#endif
-                builder.Append(Environment.NewLine);
-                strch.Clear();
+                builder.AppendLine();
             }
-            builder.Capacity = builder.Length;
+
             return builder;
         }
 
         public ReadOnlyDictionary<string, string> GetHeader<T>() where T : class
         {
-            Type type = typeof(T);
-            Type column = typeof(ExportColumnAttribute);
-            ExportColumnAttribute portAttr = null;
-
-            Dictionary<string, string> dic = new Dictionary<string, string>();
-            foreach (PropertyInfo item in type.GetProperties())
+            return HeaderCache.GetOrAdd(typeof(T), type =>
             {
-                portAttr = item.GetCustomAttributes(column, true).Where(it => it is ExportColumnAttribute).SingleOrDefault() as ExportColumnAttribute;
-                if (portAttr != null)
-                    dic.Add(portAttr.ExcelColumnName, item.Name);
+                var column = typeof(ExportColumnAttribute);
+                var properties = type.GetProperties();
+                var dictionary = new Dictionary<string, string>();
+
+                foreach (var prop in properties)
+                {
+                    var attr = prop.GetCustomAttributes(column, true)
+                        .OfType<ExportColumnAttribute>()
+                        .FirstOrDefault();
+
+                    if (attr != null)
+                    {
+                        dictionary.Add(attr.ExcelColumnName, prop.Name);
+                    }
+                }
+
+                return new ReadOnlyDictionary<string, string>(dictionary);
+            });
+        }
+
+        public async Task<byte[]> WriteAsync<T>(List<T> listData, ReadOnlyDictionary<string, string> column, string fileName = "")
+        {
+            if (listData == null)
+                throw new ArgumentNullException(nameof(listData));
+            if (column == null)
+                throw new ArgumentNullException(nameof(column));
+
+            byte[] result;
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, BufferSize))
+                {
+                    var builder = BuildStringBuilder([.. listData], column);
+                    try
+                    {
+                        if (RemoveHead)
+                        {
+                            var headerLength = BuildStringBuilder(Span<T>.Empty, column).Length;
+                            await writer.WriteAsync(builder.ToString(headerLength, builder.Length - headerLength));
+                        }
+                        else
+                        {
+                            await writer.WriteAsync(builder.ToString());
+                        }
+                        await writer.FlushAsync();
+                        result = memoryStream.ToArray();
+                    }
+                    finally
+                    {
+                        StringBuilderPool.Return(builder);
+                    }
+                }
             }
-            return new ReadOnlyDictionary<string, string>(dic);
+
+            if (!string.IsNullOrWhiteSpace(fileName))
+            {
+                using var fileStream = new FileStream(fileName, Append ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, BufferSize);
+                using var bufferedStream = new BufferedStream(fileStream, BufferSize);
+                await fileStream.WriteAsync(result.AsMemory(0, result.Length));
+            }
+
+            return result;
+        }
+
+        public Task<byte[]> WriteByAttributeAsync<T>(List<T> listData, string fileName = "") where T : class
+        {
+            if (listData == null)
+                throw new ArgumentNullException(nameof(listData));
+
+            var column = GetHeader<T>();
+            return WriteAsync(listData, column, fileName);
+        }
+
+        public byte[] Write<T>(List<T> listData, ReadOnlyDictionary<string, string> column, string fileName = "")
+        {
+            if (listData == null)
+                throw new ArgumentNullException(nameof(listData));
+            if (column == null)
+                throw new ArgumentNullException(nameof(column));
+
+            using var memoryStream = new MemoryStream();
+            using var writer = new StreamWriter(memoryStream, Encoding.UTF8, BufferSize);
+            
+            var builder = BuildStringBuilder([.. listData], column);
+            try
+            {
+                if (RemoveHead)
+                {
+                    var headerLength = BuildStringBuilder(Span<T>.Empty, column).Length;
+                    writer.Write(builder.ToString(headerLength, builder.Length - headerLength));
+                }
+                else
+                {
+                    writer.Write(builder.ToString());
+                }
+                writer.Flush();
+                var result = memoryStream.ToArray();
+
+                if (!string.IsNullOrWhiteSpace(fileName))
+                {
+                    using var fileStream = new FileStream(fileName, Append ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, BufferSize);
+                    using var bufferedStream = new BufferedStream(fileStream, BufferSize);
+                    fileStream.Write(result, 0, result.Length);
+                }
+
+                return result;
+            }
+            finally
+            {
+                StringBuilderPool.Return(builder);
+            }
+        }
+
+        public byte[] WriteByAttribute<T>(List<T> listData, string fileName = "") where T : class
+        {
+            if (listData == null)
+                throw new ArgumentNullException(nameof(listData));
+            
+            var column = GetHeader<T>();
+            return Write(listData, column, fileName);
         }
     }
 }

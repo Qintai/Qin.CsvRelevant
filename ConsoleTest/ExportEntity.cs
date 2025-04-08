@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ConsoleApp1
+namespace ConsoleTest
 {
     public class ExportEntity
     {
